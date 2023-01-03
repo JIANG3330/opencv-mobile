@@ -239,4 +239,3 @@ zip -r -9 opencv-mobile-4.6.0.zip install
 |opencv_videostab|do video stablization on powerful pc or server|
 |opencv_viz|vtk is not available on mobile, write your own data visualization routines|
 
-
