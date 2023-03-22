@@ -17,7 +17,7 @@ jobs:
     steps:
     - name: get-version
       id: get_version
-      run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+      run: echo "VERSION=${GITHUB_REF/refs\/tags-armlinux\//}" >> $GITHUB_OUTPUT
 
   armlinux-opencv4:
     runs-on: ubuntu-latest
