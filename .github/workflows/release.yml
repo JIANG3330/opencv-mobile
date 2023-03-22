@@ -17,13 +17,13 @@ jobs:
     steps:
     - name: get-version
       id: get_version
-      run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\//}-armlinux-opencv3" >> $GITHUB_OUTPUT
 
-  armlinux-opencv4:
+  armlinux-opencv3:
     runs-on: ubuntu-latest
     env:
-      OPENCV_VERSION: 4.6.0
-      PACKAGENAME: opencv-mobile-4.6.0-armlinux
+      OPENCV_VERSION: 3.4.18
+      PACKAGENAME: opencv-mobile-3.4.18-armlinux
     steps:
     - name: arm-gnu-toolchain
       run: |
@@ -37,9 +37,8 @@ jobs:
         unzip -q opencv-${{ env.OPENCV_VERSION }}.zip
         cd opencv-${{ env.OPENCV_VERSION }}
         truncate -s 0 cmake/OpenCVFindLibsGrfmt.cmake
-        rm -rf modules/gapi
-        patch -p1 -i ../opencv-4.6.0-no-rtti.patch
-        patch -p1 -i ../opencv-4.6.0-no-zlib.patch
+        patch -p1 -i ../opencv-3.4.18-no-rtti.patch
+        patch -p1 -i ../opencv-3.4.18-no-zlib.patch
         rm -rf modules/highgui
         cp -r ../highgui modules/
     - name: build-arm-linux-gnueabi
@@ -48,7 +47,7 @@ jobs:
         mkdir build-arm-linux-gnueabi && cd build-arm-linux-gnueabi
         cmake -DCMAKE_TOOLCHAIN_FILE=../../toolchains/arm-linux-gnueabi.toolchain.cmake \
             -DCMAKE_C_FLAGS="-fno-rtti -fno-exceptions" -DCMAKE_CXX_FLAGS="-fno-rtti -fno-exceptions" \
-            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=OFF ..
+            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv3_cmake_options.txt` -DBUILD_opencv_world=OFF ..
         cmake --build . -j 2
         cmake --build . --target install
     - name: build-arm-linux-gnueabihf
@@ -57,7 +56,7 @@ jobs:
         mkdir build-arm-linux-gnueabihf && cd build-arm-linux-gnueabihf
         cmake -DCMAKE_TOOLCHAIN_FILE=../../toolchains/arm-linux-gnueabihf.toolchain.cmake \
             -DCMAKE_C_FLAGS="-fno-rtti -fno-exceptions" -DCMAKE_CXX_FLAGS="-fno-rtti -fno-exceptions" \
-            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=OFF ..
+            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv3_cmake_options.txt` -DBUILD_opencv_world=OFF ..
         cmake --build . -j 2
         cmake --build . --target install
     - name: build-aarch64-linux-gnu
@@ -66,7 +65,7 @@ jobs:
         mkdir build-aarch64-linux-gnu && cd build-aarch64-linux-gnu
         cmake -DCMAKE_TOOLCHAIN_FILE=../../toolchains/aarch64-linux-gnu.toolchain.cmake \
             -DCMAKE_C_FLAGS="-fno-rtti -fno-exceptions" -DCMAKE_CXX_FLAGS="-fno-rtti -fno-exceptions" \
-            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv4_cmake_options.txt` -DBUILD_opencv_world=OFF ..
+            -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release `cat ../../opencv3_cmake_options.txt` -DBUILD_opencv_world=OFF ..
         cmake --build . -j 2
         cmake --build . --target install
     - name: package
@@ -78,9 +77,18 @@ jobs:
         cp -rf opencv-${{ env.OPENCV_VERSION }}/build-arm-linux-gnueabi/install/* ${{ env.PACKAGENAME }}/arm-linux-gnueabi/
         cp -rf opencv-${{ env.OPENCV_VERSION }}/build-arm-linux-gnueabihf/install/* ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/
         cp -rf opencv-${{ env.OPENCV_VERSION }}/build-aarch64-linux-gnu/install/* ${{ env.PACKAGENAME }}/aarch64-linux-gnu/
-        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabi/share/opencv4
-        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/share/opencv4
-        rm -rf ${{ env.PACKAGENAME }}/aarch64-linux-gnu/share/opencv4
+        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabi/share/OpenCV/haarcascades
+        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabi/share/OpenCV/lbpcascades
+        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabi/share/OpenCV/valgrind.supp
+        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabi/share/OpenCV/valgrind_3rdparty.supp
+        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/share/OpenCV/haarcascades
+        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/share/OpenCV/lbpcascades
+        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/share/OpenCV/valgrind.supp
+        rm -rf ${{ env.PACKAGENAME }}/arm-linux-gnueabihf/share/OpenCV/valgrind_3rdparty.supp
+        rm -rf ${{ env.PACKAGENAME }}/aarch64-linux-gnu/share/OpenCV/haarcascades
+        rm -rf ${{ env.PACKAGENAME }}/aarch64-linux-gnu/share/OpenCV/lbpcascades
+        rm -rf ${{ env.PACKAGENAME }}/aarch64-linux-gnu/share/OpenCV/valgrind.supp
+        rm -rf ${{ env.PACKAGENAME }}/aarch64-linux-gnu/share/OpenCV/valgrind_3rdparty.supp
         zip -9 -r ${{ env.PACKAGENAME }}.zip ${{ env.PACKAGENAME }}
     - name: upload-zip
       uses: actions/upload-artifact@v3
@@ -89,7 +97,7 @@ jobs:
         path: ${{ env.PACKAGENAME }}.zip
 
   release:
-    needs: [setup, armlinux-opencv4]
+    needs: [setup, armlinux-opencv3]
     runs-on: ubuntu-latest
     steps:
     - name: download
@@ -108,11 +116,11 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: upload-armlinux-opencv4
+    - name: upload-armlinux-opencv3
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PACKAGENAME: opencv-mobile-4.6.0-armlinux
+        PACKAGENAME: opencv-mobile-3.4.18-armlinux
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: artifacts/${{ env.PACKAGENAME }}/${{ env.PACKAGENAME }}.zip
